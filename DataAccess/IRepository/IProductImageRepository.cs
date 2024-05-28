@@ -9,5 +9,6 @@ namespace DataAccess.IRepository
 {
     public interface IProductImageRepository:IRepository<ProductImage>
     {
+
     }
 }

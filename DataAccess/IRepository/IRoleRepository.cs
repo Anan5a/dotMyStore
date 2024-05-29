@@ -9,5 +9,11 @@ namespace DataAccess.IRepository
 {
     public interface IRoleRepository:IRepository<Role>
     {
+        new int Add(Role Role);
+        new IEnumerable<Role> GetAll(string? includeProperties = null);
+        new Role? Get(Dictionary<string, dynamic> condition, string? includeProperties);
+        new Role? Update(Role Role);
+        int Remove(int id);
+        int RemoveRange(List<int> Ids);
     }
 }

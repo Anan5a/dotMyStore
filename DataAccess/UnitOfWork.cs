@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DataAccess.IRepository;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,5 +9,10 @@ namespace DataAccess
 {
     public class UnitOfWork
     {
+        protected readonly IUserRepository _userRepository;
+        public UnitOfWork(IUserRepository userRepository) 
+        {
+            _userRepository = userRepository;
+        }
     }
 }

@@ -8,5 +8,6 @@ namespace DataAccess.IRepository
 {
     public interface IUnitOfWork
     {
+        IUserRepository UserRepository { get; set; }
     }
 }

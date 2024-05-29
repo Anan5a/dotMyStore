@@ -6,13 +6,13 @@ CREATE TABLE [Users] (
 	[Password] nvarchar(256) NOT NULL,
 	[Role] bigint NOT NULL,
 	[CreatedAt] datetime2(7) NOT NULL,
-	[ModifiedAt] datetime2(7) DEFAULT 'NULL',
+	[ModifiedAt] datetime2(7) DEFAULT NULL,
 	PRIMARY KEY ([Id])
 );
 
 CREATE TABLE [Roles] (
 	[id] bigint IDENTITY(1,1) NOT NULL UNIQUE,
-	[RoleName] varchar NOT NULL UNIQUE CHECK ([RoleName] IN ('Admin', 'User')),
+	[RoleName] nvarchar(10) NOT NULL UNIQUE CHECK ([RoleName] IN ('Admin', 'User')),
 	PRIMARY KEY ([id])
 );
 

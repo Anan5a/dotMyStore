@@ -1,6 +1,11 @@
 @MyStore_HostAddress = http://localhost:5151
 
-GET {{MyStore_HostAddress}}/weatherforecast/
+GET {{MyStore_HostAddress}}/api/user
 Accept: application/json
 
 ###
+POST {{MyStore_HostAddress}}/api/user
+Accept: application/json
+# Content-Type: application/x-www-form-urlencoded
+
+{"user":"value1"}

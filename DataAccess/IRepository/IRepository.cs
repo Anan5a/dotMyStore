@@ -9,10 +9,12 @@ namespace DataAccess.IRepository
 {
     public interface IRepository<T> where T : class
     {
-        void Add(T entity);
+        IMyDbConnection dbConnection { get; set; }
+        int Add(T entity);
         IEnumerable<T> GetAll(string? includeProperties = null);
-        T Get(Expression<Func<T, bool>> filter, string? includeProperties = null);
-        void Remove(T entity);
-        void RemoveRange(IEnumerable<T> entities);
+        T? Get(Dictionary<string, dynamic> condition, string? includeProperties = null);
+        T? Update(T entity);
+        int Remove(string TableName, string ColumnName, int Id);
+        int RemoveRange(string TableName, string ColumnName, List<int> Ids);
     }
 }

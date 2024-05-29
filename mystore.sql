@@ -36,3 +36,8 @@ CREATE TABLE [Products] (
 ALTER TABLE [Users] ADD CONSTRAINT [Users_fk4] FOREIGN KEY ([Role]) REFERENCES [Roles]([id]);
 
 ALTER TABLE [ProductImages] ADD CONSTRAINT [ProductImages_fk2] FOREIGN KEY ([ProductId]) REFERENCES [Products]([Id]);
+
+
+--- Insert role data, so we would not need a new api for only 2 entries
+
+INSERT INTO [Roles]([RoleName]) VALUES ('Admin'), ('User');

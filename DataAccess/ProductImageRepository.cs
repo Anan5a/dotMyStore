@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace DataAccess
 {
-    public class ProductImageRepository:Repository<ProductImage>, IProductImageRepository
+    public class ProductImageRepository : Repository<ProductImage>, IProductImageRepository
     {
-        private readonly string tableName = "Users";
+        private readonly string tableName = "ProductImages";
 
         public ProductImageRepository(IMyDbConnection dbConnection) : base(dbConnection)
         {
@@ -26,7 +26,7 @@ namespace DataAccess
         {
             return base.RemoveRange(tableName, "Id", Ids);
         }
-        public new int Add(User user)
+        public new int Add(ProductImage productImage)
         {
 
             try
@@ -34,19 +34,14 @@ namespace DataAccess
                 using (SqlConnection connection = new SqlConnection(dbConnection.ConnectionString))
                 {
                     connection.Open();
-                    string sql = @"INSERT INTO [Users] ([Name], [Email], [Password], [Role], [CreatedAt], [ModifiedAt])
-                               VALUES (@Name, @Email, @Password, @Role, @CreatedAt, @ModifiedAt); SELECT SCOPE_IDENTITY();";
+                    string sql = $"INSERT INTO [{tableName}] ([ImageUrl], [ProductId]) VALUES (@ImageUrl, @ProductId); SELECT SCOPE_IDENTITY();";
 
                     using (SqlCommand command = new SqlCommand(sql, connection))
                     {
-                        command.Parameters.AddWithValue("@Name", user.Name);
-                        command.Parameters.AddWithValue("@Email", user.Email);
-                        command.Parameters.AddWithValue("@Password", user.Password);
-                        command.Parameters.AddWithValue("@Role", user.RoleId);
-                        command.Parameters.AddWithValue("@CreatedAt", user.CreatedAt);
-                        command.Parameters.AddWithValue("@ModifiedAt", user.ModifiedAt);
-                        int insertedUserId = Convert.ToInt32(command.ExecuteScalar());
-                        return insertedUserId;
+                        command.Parameters.AddWithValue("@ProductId", productImage.ProductId);
+                        command.Parameters.AddWithValue("@ImageUrl", productImage.ImageUrl);
+                        int insertedProductId = Convert.ToInt32(command.ExecuteScalar());
+                        return insertedProductId;
                     }
                 }
 
@@ -60,17 +55,45 @@ namespace DataAccess
 
         }
 
-        public new IEnumerable<User> GetAll(string? includeProperties = null)
+        public new IEnumerable<ProductImage>? GetAll(Dictionary<string, dynamic>? condition = null, string? includeProperties = null)
         {
-            List<User> users = new List<User>();
+            List<ProductImage> productImages = new List<ProductImage>();
             using (SqlConnection connection = new SqlConnection(dbConnection.ConnectionString))
             {
                 connection.Open();
 
-                string query = $"SELECT [Id], [Name], [Email], [Password], [Role], [CreatedAt], [ModifiedAt] FROM [{tableName}]";
+
+
+                StringBuilder whereClause = new StringBuilder();
+                List<SqlParameter> parameters = new List<SqlParameter>();
+                if (condition != null)
+                {
+                    foreach (var pair in condition)
+                    {
+                        if (whereClause.Length > 0)
+                            whereClause.Append(" AND ");
+
+                        whereClause.Append($"[{pair.Key}] = @{pair.Key}");
+                        parameters.Add(new SqlParameter($"@{pair.Key}", pair.Value));
+                    }
+
+                }
+
+
+                string query;
+                if (whereClause.Length > 0)
+                {
+                    query = $"SELECT [Id], [ProductId], [ImageUrl] FROM [{tableName}] WHERE {whereClause};";
+                }
+                else
+                {
+                    query = $"SELECT [Id], [ProductId], [ImageUrl] FROM [{tableName}]";
+                }
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
+                    command.Parameters.AddRange(parameters.ToArray());
+
                     using (SqlDataAdapter adapter = new SqlDataAdapter(command))
                     {
                         DataTable dataTable = new DataTable();
@@ -78,28 +101,25 @@ namespace DataAccess
 
                         foreach (DataRow row in dataTable.Rows)
                         {
-                            User user = new User
+                            ProductImage productImage = new ProductImage
                             {
                                 Id = Convert.ToInt64(row["Id"]),
-                                Name = Convert.ToString(row["Name"]),
-                                Email = Convert.ToString(row["Email"]),
-                                Password = Convert.ToString(row["Password"]),
-                                RoleId = Convert.ToInt64(row["Role"]),
-                                CreatedAt = Convert.ToDateTime(row["CreatedAt"]),
-                                ModifiedAt = Convert.ToDateTime(row["ModifiedAt"])
+                                ProductId = Convert.ToInt64(row["ProductId"]),
+                                ImageUrl = Convert.ToString(row["ImageUrl"]),
+
                             };
 
-                            users.Add(user);
+                            productImages.Add(productImage);
                         }
                     }
                 }
             }
-            return users;
+            return productImages.AsEnumerable();
         }
 
-        public new User? Get(Dictionary<string, dynamic> condition, string? includeProperties)
+        public new ProductImage? Get(Dictionary<string, dynamic> condition, string? includeProperties)
         {
-            User user = null;
+            ProductImage productImage = null;
             using (SqlConnection connection = new SqlConnection(dbConnection.ConnectionString))
             {
                 connection.Open();
@@ -116,7 +136,7 @@ namespace DataAccess
                     parameters.Add(new SqlParameter($"@{pair.Key}", pair.Value));
                 }
 
-                string query = $"SELECT [Id], [Name], [Email], [Password], [Role], [CreatedAt], [ModifiedAt] FROM [{tableName}] WHERE {whereClause}";
+                string query = $"SELECT [Id], [ProductId], [ImageUrl] FROM [{tableName}] WHERE {whereClause}";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
@@ -126,39 +146,33 @@ namespace DataAccess
                     {
                         if (reader.Read())
                         {
-                            user = new User
+                            productImage = new ProductImage
                             {
                                 Id = Convert.ToInt64(reader["Id"]),
-                                Name = Convert.ToString(reader["Name"]),
-                                Email = Convert.ToString(reader["Email"]),
-                                Password = Convert.ToString(reader["Password"]),
-                                RoleId = Convert.ToInt64(reader["Role"]),
-                                CreatedAt = Convert.ToDateTime(reader["CreatedAt"]),
-                                ModifiedAt = Convert.ToDateTime(reader["ModifiedAt"])
+                                ImageUrl = Convert.ToString(reader["ImageUrl"]),
+                                ProductId = Convert.ToInt64(reader["ProductId"]),
+
                             };
                         }
                     }
                 }
             }
-            return user;
+            return productImage;
         }
 
-        public new User? Update(User existingUser)
+        public new ProductImage? Update(ProductImage existingProductImage)
         {
             using (SqlConnection connection = new SqlConnection(dbConnection.ConnectionString))
             {
                 connection.Open();
 
-                // Execute the SQL update command to update the user record in the database
-                string query = $"UPDATE [Users] SET [Name] = @Name, [Email] = @Email, [Password] = @Password, [Role] = @Role, [ModifiedAt] = @ModifiedAt WHERE [Id] = @Id";
+                // Execute the SQL update command to update the productImage record in the database
+                string query = $"UPDATE [{tableName}] SET [ImageUrl] = @ImageUrl, [ProductId] = @ProductId WHERE [Id] = @Id";
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
-                    command.Parameters.AddWithValue("@Name", existingUser.Name);
-                    command.Parameters.AddWithValue("@Email", existingUser.Email);
-                    command.Parameters.AddWithValue("@Password", existingUser.Password);
-                    command.Parameters.AddWithValue("@Role", existingUser.RoleId);
-                    command.Parameters.AddWithValue("@ModifiedAt", existingUser.ModifiedAt);
-                    command.Parameters.AddWithValue("@Id", existingUser.Id);
+                    command.Parameters.AddWithValue("@ImageUrl", existingProductImage.ImageUrl);
+                    command.Parameters.AddWithValue("@ProductId", existingProductImage.ProductId);
+                    command.Parameters.AddWithValue("@Id", existingProductImage.Id);
 
                     int rowsAffected = command.ExecuteNonQuery();
 
@@ -170,7 +184,9 @@ namespace DataAccess
                 }
             }
 
-            return existingUser;
+            return existingProductImage;
         }
+
+        
     }
 }

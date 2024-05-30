@@ -34,8 +34,7 @@ namespace DataAccess
                 using (SqlConnection connection = new SqlConnection(dbConnection.ConnectionString))
                 {
                     connection.Open();
-                    string sql = @"INSERT INTO [Users] ([Name], [Email], [Password], [Role], [CreatedAt], [ModifiedAt])
-                               VALUES (@Name, @Email, @Password, @Role, @CreatedAt, @ModifiedAt); SELECT SCOPE_IDENTITY();";
+                    string sql = $"INSERT INTO [{tableName}] ([Name], [Email], [Password], [Role], [CreatedAt], [ModifiedAt]) VALUES (@Name, @Email, @Password, @Role, @CreatedAt, @ModifiedAt); SELECT SCOPE_IDENTITY();";
 
                     using (SqlCommand command = new SqlCommand(sql, connection))
                     {
@@ -60,17 +59,44 @@ namespace DataAccess
 
         }
 
-        public new IEnumerable<User> GetAll(string? includeProperties = null)
+        public new IEnumerable<User> GetAll(Dictionary<string, dynamic>? condition = null,string ? includeProperties = null)
         {
             List<User> users = new List<User>();
             using (SqlConnection connection = new SqlConnection(dbConnection.ConnectionString))
             {
                 connection.Open();
+                
+                StringBuilder whereClause = new StringBuilder();
+                List<SqlParameter> parameters = new List<SqlParameter>();
+                if (condition != null)
+                {
+                    foreach (var pair in condition)
+                    {
+                        if (whereClause.Length > 0)
+                            whereClause.Append(" AND ");
 
-                string query = $"SELECT [Id], [Name], [Email], [Password], [Role], [CreatedAt], [ModifiedAt] FROM [{tableName}]";
+                        whereClause.Append($"[{pair.Key}] = @{pair.Key}");
+                        parameters.Add(new SqlParameter($"@{pair.Key}", pair.Value));
+                    }
+
+                }
+
+
+                string query;
+                if (whereClause.Length > 0)
+                {
+                    query = $"SELECT [Id], [Name], [Email], [Password], [Role], [CreatedAt], [ModifiedAt] FROM [{tableName}] WHERE {whereClause}";
+                }
+                else
+                {
+                    query = $"SELECT [Id], [Name], [Email], [Password], [Role], [CreatedAt], [ModifiedAt] FROM [{tableName}]";
+                }
+
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
+                    command.Parameters.AddRange(parameters.ToArray());
+
                     using (SqlDataAdapter adapter = new SqlDataAdapter(command))
                     {
                         DataTable dataTable = new DataTable();
@@ -99,7 +125,7 @@ namespace DataAccess
 
         public new User? Get(Dictionary<string, dynamic> condition, string? includeProperties)
         {
-            User user = null;
+            User? user = null;
             using (SqlConnection connection = new SqlConnection(dbConnection.ConnectionString))
             {
                 connection.Open();
@@ -150,7 +176,7 @@ namespace DataAccess
                 connection.Open();
 
                 // Execute the SQL update command to update the user record in the database
-                string query = $"UPDATE [Users] SET [Name] = @Name, [Email] = @Email, [Password] = @Password, [Role] = @Role, [ModifiedAt] = @ModifiedAt WHERE [Id] = @Id";
+                string query = $"UPDATE [{tableName}] SET [Name] = @Name, [Email] = @Email, [Password] = @Password, [Role] = @Role, [ModifiedAt] = @ModifiedAt WHERE [Id] = @Id";
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@Name", existingUser.Name);

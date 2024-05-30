@@ -50,7 +50,7 @@ namespace DataAccess
                 using (SqlConnection connection = new SqlConnection(dbConnection.ConnectionString))
                 {
                     connection.Open();
-                    string sql = $"DELETE FROM {TableName} WHERE {ColumnName} = ({string.Join(",", Ids)})";
+                    string sql = $"DELETE FROM {TableName} WHERE {ColumnName} IN ({string.Join(",", Ids)})";
 
                     using (SqlCommand command = new SqlCommand(sql, connection))
                     {
@@ -71,7 +71,7 @@ namespace DataAccess
             throw new NotImplementedException("Must implement specific logic in the repository");
         }
 
-        public IEnumerable<T> GetAll(string? includeProperties)
+        public IEnumerable<T> GetAll(Dictionary<string, dynamic>? condition = null, string ? includeProperties = null)
         {
             throw new NotImplementedException("Must implement specific logic in the repository");
         }

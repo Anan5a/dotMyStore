@@ -11,7 +11,7 @@ namespace DataAccess.IRepository
     {
         IMyDbConnection dbConnection { get; set; }
         int Add(T entity);
-        IEnumerable<T> GetAll(string? includeProperties = null);
+        IEnumerable<T>? GetAll(Dictionary<string, dynamic>? condition = null, string? includeProperties = null);
         T? Get(Dictionary<string, dynamic> condition, string? includeProperties = null);
         T? Update(T entity);
         int Remove(string TableName, string ColumnName, int Id);

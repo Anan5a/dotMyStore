@@ -19,16 +19,15 @@ namespace MyStore.Controllers
         }
         // GET: api/<UserController>
         [HttpGet]
-        [Route("all")]
-        public ActionResult Get()
+        public async Task<IEnumerable<User>> Get()
         {
             IEnumerable<User> userList = _userRepository.GetAll();
-            return Ok(userList);
+            return userList;
         }
 
         // GET api/<UserController>/5
         [HttpGet("{id}")]
-        public ActionResult Get(int id)
+        public async Task<ActionResult<User>> Get(int id)
         {
             Dictionary<string, dynamic> condition = new Dictionary<string, dynamic>();
             condition["Id"] = id;
@@ -38,12 +37,12 @@ namespace MyStore.Controllers
             {
                 return NotFound(ErrorResponse.NotFound());
             }
-            return Ok(user);
+            return user;
         }
 
         // POST api/<UserController>
         [HttpPost]
-        public ActionResult Post([FromBody] UserDto fuser)
+        public async Task<ActionResult<User>> Post([FromBody] UserDto fuser)
         {
             if (!ModelState.IsValid)
             {
@@ -67,15 +66,12 @@ namespace MyStore.Controllers
             }
             string uri = $"/api/user/{id}";
             user.Id = id;
-
-
-
             return Created(uri, user);
         }
 
         // PUT api/<UserController>/5
         [HttpPut("{id}")]
-        public ActionResult Put(int id, [FromBody] UserUpdateDto userUpdateDto)
+        public async Task<ActionResult<User>> Put(int id, [FromBody] UserUpdateDto userUpdateDto)
         {
             Dictionary<string, dynamic> condition = new Dictionary<string, dynamic>();
             condition["Id"] = id;
@@ -122,12 +118,12 @@ namespace MyStore.Controllers
             {
                 return UnprocessableEntity(ErrorResponse.ErrorCustom("Entity not updated", "No property was updated."));
             }
-            return Ok(existingUser);
+            return existingUser;
         }
 
         // DELETE api/<UserController>/5
         [HttpDelete("{id}")]
-        public ActionResult Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
             int status = _userRepository.Remove(id);
 

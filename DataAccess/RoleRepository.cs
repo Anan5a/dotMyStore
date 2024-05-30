@@ -56,7 +56,7 @@ namespace DataAccess
 
         }
 
-        public new IEnumerable<User> GetAll(string? includeProperties = null)
+        public new IEnumerable<User> GetAll(Dictionary<string, dynamic>? condition = null, string ? includeProperties = null)
         {
             List<User> users = new List<User>();
             using (SqlConnection connection = new SqlConnection(dbConnection.ConnectionString))
@@ -67,6 +67,7 @@ namespace DataAccess
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
+
                     using (SqlDataAdapter adapter = new SqlDataAdapter(command))
                     {
                         DataTable dataTable = new DataTable();

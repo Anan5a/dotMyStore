@@ -30,6 +30,8 @@ CREATE TABLE [Products] (
 	[SKU] nvarchar(16) NOT NULL,
 	[Price] decimal(18,0) NOT NULL,
 	[Weight] decimal(18,0) NOT NULL,
+	[CreatedAt] datetime2(7) NOT NULL,
+	[ModifiedAt] datetime2(7) DEFAULT NULL,
 	PRIMARY KEY ([Id])
 );
 

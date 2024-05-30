@@ -10,7 +10,7 @@ namespace DataAccess.IRepository
     public interface IProductRepository:IRepository<Product>
     {
         new int Add(Product Product);
-        new IEnumerable<Product> GetAll(string? includeProperties = null);
+        new IEnumerable<Product>? GetAll(Dictionary<string, dynamic>? condition = null, string? includeProperties = null);
         new Product? Get(Dictionary<string, dynamic> condition, string? includeProperties);
         new Product? Update(Product Product);
         int Remove(int id);

@@ -6,6 +6,7 @@ using Models;
 using Models.DTOs;
 using Utility;
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace MyStore.Controllers
@@ -59,6 +60,7 @@ namespace MyStore.Controllers
 
         // POST api/<ProductController>
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Product>> Post([FromForm] ProductCreateDto productCreateDto)
         {
             if (!ModelState.IsValid)
@@ -140,6 +142,7 @@ namespace MyStore.Controllers
 
         // PUT api/<ProductController>/5
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Product>> Put(int id, [FromBody] ProductUpdateDto productUpdateDto)
         {
             Dictionary<string, dynamic> condition = new Dictionary<string, dynamic>();
@@ -196,6 +199,7 @@ namespace MyStore.Controllers
 
         // DELETE api/<ProductController>/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> Delete(int id)
         {
             Dictionary<string, dynamic> condition = new Dictionary<string, dynamic>();

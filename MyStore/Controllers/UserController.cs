@@ -69,7 +69,7 @@ namespace MyStore.Controllers
                 Email = fuser.Email,
                 Password = _passwordManager.HashPassword(fuser.Password),
                 CreatedAt = DateTime.Now,
-                RoleId = 1,
+                RoleId = 2,
                 ModifiedAt = DateTime.Now,
             };
             int id = _userRepository.Add(user);
@@ -85,7 +85,7 @@ namespace MyStore.Controllers
 
         [HttpPost]
         [Route("login")]
-        public async Task<ActionResult<AuthenticationResponse>> Login([FromBody] UserLoginDto loginDto)
+        public async Task<ActionResult<AuthenticationResponse>> Login([FromForm] UserLoginDto loginDto)
         {
             if (!ModelState.IsValid)
             {

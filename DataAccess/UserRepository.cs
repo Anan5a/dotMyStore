@@ -59,13 +59,13 @@ namespace DataAccess
 
         }
 
-        public new IEnumerable<User> GetAll(Dictionary<string, dynamic>? condition = null,string ? includeProperties = null)
+        public new IEnumerable<User> GetAll(Dictionary<string, dynamic>? condition = null, string? includeProperties = "true")
         {
             List<User> users = new List<User>();
             using (SqlConnection connection = new SqlConnection(dbConnection.ConnectionString))
             {
                 connection.Open();
-                
+
                 StringBuilder whereClause = new StringBuilder();
                 List<SqlParameter> parameters = new List<SqlParameter>();
                 if (condition != null)
@@ -75,7 +75,7 @@ namespace DataAccess
                         if (whereClause.Length > 0)
                             whereClause.Append(" AND ");
 
-                        whereClause.Append($"[{pair.Key}] = @{pair.Key}");
+                        whereClause.Append($"u.[{pair.Key}] = @{pair.Key}");
                         parameters.Add(new SqlParameter($"@{pair.Key}", pair.Value));
                     }
 
@@ -85,11 +85,11 @@ namespace DataAccess
                 string query;
                 if (whereClause.Length > 0)
                 {
-                    query = $"SELECT [Id], [Name], [Email], [Password], [Role], [CreatedAt], [ModifiedAt] FROM [{tableName}] WHERE {whereClause}";
+                    query = $"SELECT u.[Id], u.[Name], u.[Email], u.[Password], r.[RoleName], u.[Role], u.[CreatedAt], u.[ModifiedAt] FROM [{tableName}] u JOIN [Roles] r ON u.[Role] = r.[Id] WHERE {whereClause}";
                 }
                 else
                 {
-                    query = $"SELECT [Id], [Name], [Email], [Password], [Role], [CreatedAt], [ModifiedAt] FROM [{tableName}]";
+                    query = $"SELECT u.[Id], u.[Name], u.[Email], u.[Password], r.[RoleName], u.[Role], u.[CreatedAt], u.[ModifiedAt] FROM [{tableName}] u JOIN [Roles] r ON u.[Role] = r.[Id]";
                 }
 
 
@@ -114,7 +114,14 @@ namespace DataAccess
                                 CreatedAt = Convert.ToDateTime(row["CreatedAt"]),
                                 ModifiedAt = Convert.ToDateTime(row["ModifiedAt"])
                             };
-
+                            if (includeProperties != null)
+                            {
+                                user.Role = new Role
+                                {
+                                    Id = user.RoleId,
+                                    RoleName = Convert.ToString(row["RoleName"])
+                                };
+                            }
                             users.Add(user);
                         }
                     }
@@ -138,11 +145,19 @@ namespace DataAccess
                     if (whereClause.Length > 0)
                         whereClause.Append(" AND ");
 
-                    whereClause.Append($"[{pair.Key}] = @{pair.Key}");
+                    whereClause.Append($"u.[{pair.Key}] = @{pair.Key}");
                     parameters.Add(new SqlParameter($"@{pair.Key}", pair.Value));
                 }
+                string query;
 
-                string query = $"SELECT [Id], [Name], [Email], [Password], [Role], [CreatedAt], [ModifiedAt] FROM [{tableName}] WHERE {whereClause}";
+                if (includeProperties != null)
+                {
+                    query = $"SELECT u.[Id], u.[Name], u.[Email], u.[Password], r.[RoleName],u.[Role] , u.[CreatedAt], u.[ModifiedAt] FROM[{tableName}] u JOIN [Roles] r ON u.[Role] = r.[Id] WHERE {whereClause}";
+                }
+                else
+                {
+                    query = $"SELECT u.[Id], u.[Name], u.[Email], u.[Password], u.[Role], u.[CreatedAt], u.[ModifiedAt] FROM [{tableName}] u WHERE {whereClause}";
+                }
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
@@ -162,6 +177,14 @@ namespace DataAccess
                                 CreatedAt = Convert.ToDateTime(reader["CreatedAt"]),
                                 ModifiedAt = Convert.ToDateTime(reader["ModifiedAt"])
                             };
+                            if (includeProperties != null)
+                            {
+                                user.Role = new Role
+                                {
+                                    Id = user.RoleId,
+                                    RoleName = Convert.ToString(reader["RoleName"])
+                                };
+                            }
                         }
                     }
                 }

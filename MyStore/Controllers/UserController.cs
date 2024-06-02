@@ -1,7 +1,10 @@
 ﻿using DataAccess.IRepository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models;
 using Models.DTOs;
+using MyStore.Services;
+using System.Security.Claims;
 using Utility;
 
 namespace MyStore.Controllers
@@ -12,21 +15,32 @@ namespace MyStore.Controllers
     {
         private readonly PasswordManager _passwordManager;
         private readonly IUserRepository _userRepository;
-        public UserController(IUserRepository userRepository, PasswordManager passwordManager)
+        private readonly IConfiguration _configuration;
+
+        public UserController(IUserRepository userRepository, PasswordManager passwordManager, IConfiguration configuration)
         {
             _passwordManager = passwordManager;
             _userRepository = userRepository;
+            _configuration = configuration;
         }
         // GET: api/<UserController>
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IEnumerable<User>> Get()
         {
             IEnumerable<User> userList = _userRepository.GetAll();
+
+            if (userList == null)
+            {
+                return Enumerable.Empty<User>();
+            }
+
             return userList;
         }
 
         // GET api/<UserController>/5
         [HttpGet("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<User>> Get(int id)
         {
             Dictionary<string, dynamic> condition = new Dictionary<string, dynamic>();
@@ -69,10 +83,49 @@ namespace MyStore.Controllers
             return Created(uri, user);
         }
 
+        [HttpPost]
+        [Route("login")]
+        public async Task<ActionResult<AuthenticationResponse>> Login([FromBody] UserLoginDto loginDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            Dictionary<string, dynamic> condition = new Dictionary<string, dynamic>();
+            condition["Email"] = loginDto.Email;
+
+            User? existingUser = _userRepository.Get(condition, includeProperties: "true");
+            if (existingUser == null)
+            {
+                return NotFound(ErrorResponse.ErrorCustom("Not Found", "No user was found"));
+            }
+            if (!_passwordManager.VerifyPassword(loginDto.Password, existingUser.Password))
+            {
+                return Unauthorized(ErrorResponse.ErrorCustom("Unauthorized", "Authentication failed"));
+            }
+
+            var token = AuthenticationService.GenerateJwtToken(existingUser, _configuration);
+            return new AuthenticationResponse { Token = token, user = existingUser };
+
+        }
+
         // PUT api/<UserController>/5
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<ActionResult<User>> Put(int id, [FromBody] UserUpdateDto userUpdateDto)
         {
+
+            //check if current user should be able to update 
+            var httpUserId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var httpUserRole = User.FindFirstValue(ClaimTypes.Role);
+
+            if (httpUserId != id || httpUserRole != "Admin")
+            {
+                return Forbid();
+
+            }
+
             Dictionary<string, dynamic> condition = new Dictionary<string, dynamic>();
             condition["Id"] = id;
 
@@ -123,6 +176,7 @@ namespace MyStore.Controllers
 
         // DELETE api/<UserController>/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> Delete(int id)
         {
             int status = _userRepository.Remove(id);

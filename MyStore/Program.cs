@@ -1,6 +1,9 @@
 using DataAccess;
 using DataAccess.IRepository;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using Utility;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,12 +25,30 @@ builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddSingleton<PasswordManager>();
 
 
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["JwtAuthConfig:Issuer"],
+        ValidAudience = builder.Configuration["JwtAuthConfig:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtAuthConfig:SigningKey"]))
+    };
+});
+
 
 
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
- 
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -40,6 +61,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

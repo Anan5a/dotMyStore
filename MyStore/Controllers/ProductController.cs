@@ -35,6 +35,10 @@ namespace MyStore.Controllers
         public async Task<IEnumerable<Product>> Get()
         {
             IEnumerable<Product> productList = _productRepository.GetAll(includeProperties: "true");
+            if (productList == null)
+            {
+                return Enumerable.Empty<Product>();
+            }
             return productList;
         }
 

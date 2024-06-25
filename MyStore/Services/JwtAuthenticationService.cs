@@ -7,7 +7,7 @@ using System.Text;
 
 namespace MyStore.Services
 {
-    public static class AuthenticationService
+    public static class JwtAuthenticationService
     {
         public static string GenerateJwtToken(User user, IConfiguration configuration)
         {

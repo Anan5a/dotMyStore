@@ -1,7 +1,8 @@
 @MyStore_HostAddress = http://localhost:5151
 
-GET {{MyStore_HostAddress}}/api/user
+GET {{MyStore_HostAddress}}/api/user/14
 Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6Ik1hc3VtIiwiZW1haWwiOiJtYXN1bUBnbWFpbC5jb20iLCJuYW1laWQiOiIxNCIsInJvbGUiOiJBZG1pbiIsIm5iZiI6MTcxOTIyODAzMSwiZXhwIjoxNzIxODIwMDMxLCJpYXQiOjE3MTkyMjgwMzEsImlzcyI6InNlbGYiLCJhdWQiOiJhcHAifQ.6L97nSH4vUrs0MDCFSZ9TZn3mdcgjhZrXMlUCOMz1eQ
 
 ###
 POST {{MyStore_HostAddress}}/api/user

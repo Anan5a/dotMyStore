@@ -1,9 +1,12 @@
 ﻿using DataAccess.IRepository;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models;
 using Models.DTOs;
 using MyStore.Services;
+using System.Reflection;
 using System.Security.Claims;
 using Utility;
 
@@ -104,10 +107,41 @@ namespace MyStore.Controllers
             {
                 return Unauthorized(ErrorResponse.ErrorCustom("Unauthorized", "Authentication failed"));
             }
+            //valid user, login using cookie and jwt
 
-            var token = AuthenticationService.GenerateJwtToken(existingUser, _configuration);
+            var claimsIdentity = new ClaimsIdentity(new Claim[]
+                {
+                    new Claim(ClaimTypes.Name, existingUser.Name),
+                    new Claim(ClaimTypes.Email, existingUser.Email),
+                    new Claim(ClaimTypes.NameIdentifier, existingUser.Id.ToString()),
+                    new Claim(ClaimTypes.Role, existingUser.Role.RoleName),
+                }, CookieAuthenticationDefaults.AuthenticationScheme);
+
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = true
+            };
+            HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(claimsIdentity),
+                    authProperties).Wait();
+
+            var token = JwtAuthenticationService.GenerateJwtToken(existingUser, _configuration);
             return new AuthenticationResponse { Token = token, user = existingUser };
 
+        }
+        [HttpPost]
+        [Authorize]
+        [Route("logout")]
+
+        public async Task<ActionResult<AuthenticationResponse>> Logout()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+            HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme).Wait();
+            return Redirect("/");
         }
 
         // PUT api/<UserController>/5

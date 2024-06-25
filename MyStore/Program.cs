@@ -1,8 +1,10 @@
 using DataAccess;
 using DataAccess.IRepository;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using MyStore.Middlewares;
 using System.Text;
 using Utility;
 
@@ -43,7 +45,17 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite=SameSiteMode.Strict;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.ExpireTimeSpan = TimeSpan.FromDays(1);
+        options.LoginPath = "/api/user/Login";
+        options.LogoutPath = "/api/user/Logout";
+        options.AccessDeniedPath = "/error/AccessDenied";
+    });
 
 
 builder.Services.AddEndpointsApiExplorer();
@@ -63,6 +75,9 @@ app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<Middleware>();
+
 
 app.MapControllers();
 

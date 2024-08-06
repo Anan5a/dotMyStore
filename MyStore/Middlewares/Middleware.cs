@@ -22,22 +22,20 @@ namespace MyStore.Middlewares
         public async Task Invoke(HttpContext httpContext)
         {
             var watch = Stopwatch.StartNew();
-            System.Diagnostics.Debug.WriteLine($"Got request: {httpContext.Request.Method} {httpContext.Request.Path}");
-            System.Diagnostics.Debug.WriteLine($"Request type: {httpContext.Request.Headers.Accept}");
-            System.Diagnostics.Debug.WriteLine($"User auth status: {httpContext.User.Identity?.IsAuthenticated}");
+            // System.Diagnostics.Debug.WriteLine($"Got request: {httpContext.Request.Method} {httpContext.Request.Path}");
+            // System.Diagnostics.Debug.WriteLine($"Request type: {httpContext.Request.Headers.Accept}");
+            // System.Diagnostics.Debug.WriteLine($"User auth status: {httpContext.User.Identity?.IsAuthenticated}");
 
             //short circuit!
-            watch.Stop();
-            httpContext.Response.Headers.Append("X-Message", "Short circuit :v");
-            httpContext.Response.Headers.Append("X-Time", watch.ElapsedMilliseconds.ToString());
+            // httpContext.Response.Headers.Append("X-Message", "Short circuit :v");
 
-            httpContext.Response.StatusCode = 403;
-            await httpContext.Response.WriteAsync("Access denied");
-            return;
+            // httpContext.Response.StatusCode = 403;
+            // await httpContext.Response.WriteAsync("Access denied");
+            // return;
             //end short circuit
+            watch.Stop();
+            httpContext.Response.Headers.Append("X-Time", watch.ElapsedMilliseconds.ToString());
             await _next(httpContext);
-
-            System.Diagnostics.Debug.WriteLine($"After _next(req): {httpContext.Response.StatusCode} {httpContext.Response.Headers.ContentType}");
         }
     }
 }
